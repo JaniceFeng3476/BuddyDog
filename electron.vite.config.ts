@@ -3,9 +3,17 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   main: {},
-  preload: {},
+  preload: {
+    build: {
+      rollupOptions: {
+        output: {
+          entryFileNames: '[name].cjs',
+          format: 'cjs'
+        }
+      }
+    }
+  },
   renderer: {
     plugins: [react()]
   }
 })
-
