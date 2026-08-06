@@ -3,6 +3,8 @@ import { MouseInteractionService } from './mouseInteractionService'
 import { WindowPositionService } from './windowPositionService'
 import { WindowSizeService } from './windowSizeService'
 
+const FALLBACK_SHOW_DELAY_MS = 750
+
 interface WindowManagerOptions {
   readonly preloadPath: string
   readonly rendererFilePath: string
@@ -62,13 +64,36 @@ export class WindowManager {
 
     petWindow.setAlwaysOnTop(true, 'floating')
 
+    let fallbackShowTimer: ReturnType<typeof setTimeout> | undefined
+
     petWindow.once('ready-to-show', () => {
       if (!petWindow.isDestroyed()) {
         petWindow.show()
       }
     })
 
+    petWindow.webContents.once('did-finish-load', () => {
+      fallbackShowTimer = setTimeout(() => {
+        if (!petWindow.isDestroyed() && !petWindow.isVisible()) {
+          petWindow.show()
+        }
+      }, FALLBACK_SHOW_DELAY_MS)
+    })
+
+    if (process.env.NODE_ENV === 'development') {
+      petWindow.webContents.on('console-message', (details) => {
+        if (details.level === 'warning' || details.level === 'error') {
+          console.error(
+            `[BuddyDog renderer:${details.level}] ${details.message}`
+          )
+        }
+      })
+    }
+
     petWindow.once('closed', () => {
+      if (fallbackShowTimer) {
+        clearTimeout(fallbackShowTimer)
+      }
       this.mouseInteractionService?.dispose()
       this.mouseInteractionService = undefined
       this.petWindow = undefined

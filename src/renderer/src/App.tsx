@@ -1,8 +1,41 @@
-import { useRef } from 'react'
-import { APP_NAME } from '../../shared/appInfo'
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties
+} from 'react'
+import { PetStage } from './pet/PetStage'
+import type { PetHitbox } from './pet/PetManifest'
 
 export function App(): React.JSX.Element {
   const dragging = useRef(false)
+  const [hitArea, setHitArea] = useState<PetHitbox>()
+  const handleHitAreaChange = useCallback(
+    (nextHitArea: PetHitbox | undefined): void => {
+      setHitArea(nextHitArea)
+    },
+    []
+  )
+
+  useEffect(() => {
+    const handleWheel = (event: WheelEvent): void => {
+      if (!event.ctrlKey || event.deltaY === 0) {
+        return
+      }
+
+      event.preventDefault()
+      window.buddyDog.windowScale.adjust(
+        event.deltaY < 0 ? 'increase' : 'decrease'
+      )
+    }
+
+    window.addEventListener('wheel', handleWheel, { passive: false })
+
+    return () => {
+      window.removeEventListener('wheel', handleWheel)
+    }
+  }, [])
 
   const finishDragging = (event: React.PointerEvent<HTMLElement>): void => {
     if (!dragging.current) {
@@ -16,11 +49,22 @@ export function App(): React.JSX.Element {
     })
   }
 
+  const hitAreaStyle: CSSProperties | undefined = hitArea
+    ? {
+        left: hitArea.x,
+        top: hitArea.y,
+        width: hitArea.width,
+        height: hitArea.height
+      }
+    : undefined
+
   return (
     <main className="pet-stage">
-      <section
-        className="pet-placeholder"
-        aria-labelledby="app-title"
+      <PetStage onHitAreaChange={handleHitAreaChange} />
+      <div
+        className={`pet-hit-area${hitArea ? '' : ' pet-hit-area--fallback'}`}
+        style={hitAreaStyle}
+        aria-label="拖动 BuddyDog"
         onPointerDown={(event) => {
           if (event.button !== 0) {
             return
@@ -46,23 +90,7 @@ export function App(): React.JSX.Element {
         onPointerUp={finishDragging}
         onPointerCancel={finishDragging}
         onLostPointerCapture={finishDragging}
-        onWheel={(event) => {
-          if (!event.ctrlKey || event.deltaY === 0) {
-            return
-          }
-
-          event.preventDefault()
-          window.buddyDog.windowScale.adjust(
-            event.deltaY < 0 ? 'increase' : 'decrease'
-          )
-        }}
-      >
-        <div className="pet-face" aria-hidden="true">
-          🐶
-        </div>
-        <h1 id="app-title">{APP_NAME}</h1>
-        <p>Sprint 2</p>
-      </section>
+      />
     </main>
   )
 }

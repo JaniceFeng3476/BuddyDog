@@ -1,0 +1,36 @@
+{
+  "petId": "placeholder-dog",
+  "displayName": "Placeholder Dog",
+  "version": 1,
+  "canvas": {
+    "width": 512,
+    "height": 512
+  },
+  "anchor": {
+    "x": 0.5,
+    "y": 1
+  },
+  "alignment": "bottom-center",
+  "hitbox": {
+    "x": 116,
+    "y": 116,
+    "width": 280,
+    "height": 344
+  },
+  "animations": {
+    "idle": {
+      "frames": [
+        "idle/idle_0001.png",
+        "idle/idle_0002.png",
+        "idle/idle_0003.png",
+        "idle/idle_0004.png",
+        "idle/idle_0005.png",
+        "idle/idle_0006.png",
+        "idle/idle_0007.png",
+        "idle/idle_0008.png"
+      ],
+      "fps": 8,
+      "loop": true
+    }
+  }
+}
